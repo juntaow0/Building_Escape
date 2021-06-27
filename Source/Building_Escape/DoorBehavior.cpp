@@ -17,18 +17,29 @@ UDoorBehavior::UDoorBehavior()
 void UDoorBehavior::BeginPlay()
 {
 	Super::BeginPlay();
-	//InitializeDoor();
+	InitializeDoor();
 }
 
 // Called every frame
 void UDoorBehavior::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	UE_LOG(LogTemp, Warning, TEXT("Yaw is: %f"),CompOwner->GetActorRotation().Yaw);
-	float CurrentYaw = CompOwner->GetActorRotation().Yaw;
-	FRotator OpenDoor(0.0f,0.0f,0.0f);
-	OpenDoor.Yaw = FMath::FInterpConstantTo(CurrentYaw,TargetYaw,DeltaTime,DoorSpeed);
-	CompOwner->SetActorRotation(OpenDoor);
+	if (!InAction){
+		return;
+	}
+	FRotator CurrentRotation = CompOwner->GetActorRotation();
+	if (LerpPercent>=1.0f){
+		InAction = false;
+		LerpPercent = 0.0f;
+		CurrentRotation.Yaw = TargetYaw;
+		CompOwner->SetActorRotation(CurrentRotation);
+		UE_LOG(LogTemp, Warning, TEXT("Door Action Complete"));
+		return;
+	}
+	LerpPercent += DoorSpeed*DeltaTime;
+	CurrentRotation.Yaw = FMath::Lerp(InitialYaw,TargetYaw, LerpPercent);
+	CompOwner->SetActorRotation(CurrentRotation);
+	UE_LOG(LogTemp, Warning, TEXT("Yaw is: %f, Lerp is: %f"),CurrentRotation.Yaw, LerpPercent);
 }
 
 // open or close door
@@ -36,18 +47,22 @@ void UDoorBehavior::ToggleDoor(bool IsOpen){
 	if (IsOpen==IsDoorOpen){
 		return;
 	}
-	auto DoorRotation = CompOwner->GetActorRotation();
-	int32 Direction = IsOpen? -1:1;
-	DoorRotation.Yaw += 90.0f*Direction;
-	CompOwner->SetActorRotation(DoorRotation);
+	if (InAction){
+		return;
+	}
+	FRotator DoorRotation = CompOwner->GetActorRotation();
+	TargetYaw =  DoorRotation.Yaw + 90.0f* (IsOpen? -1:1);
+	InitialYaw = DoorRotation.Yaw;
 	IsDoorOpen = IsOpen;
+	InAction = true;
 }
 
 void UDoorBehavior::InitializeDoor(){
 	if (IsDoorOpen){
-		auto DoorRotation = CompOwner->GetActorRotation();
-		DoorRotation.Yaw += 90.0f;
-		CompOwner->SetActorRotation(DoorRotation);
+		FRotator DoorRotation = CompOwner->GetActorRotation();
+		TargetYaw =  DoorRotation.Yaw + 90.0f;
+		InitialYaw = DoorRotation.Yaw;
+		InAction = true;
 	}
 }
 

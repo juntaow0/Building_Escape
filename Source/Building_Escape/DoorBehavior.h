@@ -27,15 +27,15 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	bool IsDoorOpen = false;
+	bool InAction = false;
 
 	UPROPERTY(EditAnywhere)
-	float DoorSpeed = 2.0f;
+	float DoorSpeed = 0.5f;
 
-	UPROPERTY(VisibleAnywhere)
+	float LerpPercent = 0.0f;
 	AActor* CompOwner;
-
-	UPROPERTY(EditAnywhere)
-	float TargetYaw = 90.0f;;
+	float InitialYaw;
+	float TargetYaw;
 
 	UFUNCTION(Blueprintcallable)
 	void ToggleDoor(bool IsOpen);
