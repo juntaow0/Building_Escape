@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Engine/TriggerBox.h"
 #include "DoorBehavior.generated.h"
-
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDING_ESCAPE_API UDoorBehavior : public UActorComponent
@@ -16,28 +16,40 @@ public:
 	// Sets default values for this component's properties
 	UDoorBehavior();
 
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UFUNCTION(Blueprintcallable)
+	void ToggleDoor(bool IsOpen);
+	UFUNCTION(Blueprintcallable)
+	void OpenDoor();
+	UFUNCTION(Blueprintcallable)
+	void CloseDoor();
 
 private:
 	UPROPERTY(EditAnywhere)
 	bool IsDoorOpen = false;
-	bool InAction = false;
-
+	UPROPERTY(EditAnywhere)
+	float DoorOpenRange = 90.0f;
 	UPROPERTY(EditAnywhere)
 	float DoorSpeed = 0.5f;
-
+	UPROPERTY(EditAnywhere)
+	float DoorCloseDelay = 2.0f;
+	UPROPERTY(EditAnywhere)
+	ATriggerBox * PressurePlate;
+	UPROPERTY(EditAnywhere)
+	AActor* User;
+	bool InAction = false;
 	float LerpPercent = 0.0f;
 	AActor* CompOwner;
 	float InitialYaw;
 	float TargetYaw;
-
-	UFUNCTION(Blueprintcallable)
-	void ToggleDoor(bool IsOpen);
 	void InitializeDoor();
+	void DoorActions(float DeltaTime);
+	float DoorLastOpened = 0.0f;
 };

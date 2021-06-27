@@ -3,6 +3,8 @@
 
 #include "DoorBehavior.h"
 #include "GameFramework/Actor.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values for this component's properties
 UDoorBehavior::UDoorBehavior()
@@ -17,13 +19,67 @@ UDoorBehavior::UDoorBehavior()
 void UDoorBehavior::BeginPlay()
 {
 	Super::BeginPlay();
+	User = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if (!PressurePlate){
+		UE_LOG(LogTemp, Error, TEXT("%s has DoorBehavior, but no Trigger set"),*CompOwner->GetName());
+	}
 	InitializeDoor();
+	//FScriptDelegate Delegate1;
+	//FScriptDelegate Delegate2;
+	//Delegate1.BindUFunction(this, "OpenDoor");
+	//Delegate2.BindUFunction(this, "CloseDoor");
+	//PressurePlate->OnActorBeginOverlap.Add(Delegate1);
+	//PressurePlate->OnActorEndOverlap.Add(Delegate2);
 }
 
 // Called every frame
 void UDoorBehavior::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	 if (PressurePlate && PressurePlate->IsOverlappingActor(User)){
+	 	ToggleDoor(true);
+		DoorLastOpened = GetWorld()->GetTimeSeconds();
+	 }else{
+		 if (GetWorld()->GetTimeSeconds()-DoorCloseDelay>DoorLastOpened){
+			 ToggleDoor(false);
+		 }
+	 }
+	DoorActions(DeltaTime);
+}
+
+// open or close door
+void UDoorBehavior::ToggleDoor(bool IsOpen){
+	if (IsOpen==IsDoorOpen){
+		return;
+	}
+	if (InAction){
+		return;
+	}
+	FRotator DoorRotation = CompOwner->GetActorRotation();
+	TargetYaw =  DoorRotation.Yaw + DoorOpenRange* (IsOpen? 1:-1);
+	InitialYaw = DoorRotation.Yaw;
+	IsDoorOpen = IsOpen;
+	InAction = true;
+}
+
+void UDoorBehavior::OpenDoor(){
+	ToggleDoor(true);
+}
+
+void UDoorBehavior::CloseDoor(){
+	ToggleDoor(false);
+}
+
+void UDoorBehavior::InitializeDoor(){
+	if (IsDoorOpen){
+		FRotator DoorRotation = CompOwner->GetActorRotation();
+		TargetYaw =  DoorRotation.Yaw + DoorOpenRange;
+		InitialYaw = DoorRotation.Yaw;
+		InAction = true;
+	}
+}
+
+void UDoorBehavior::DoorActions(float DeltaTime){
 	if (!InAction){
 		return;
 	}
@@ -41,31 +97,6 @@ void UDoorBehavior::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	CompOwner->SetActorRotation(CurrentRotation);
 	UE_LOG(LogTemp, Warning, TEXT("Yaw is: %f, Lerp is: %f"),CurrentRotation.Yaw, LerpPercent);
 }
-
-// open or close door
-void UDoorBehavior::ToggleDoor(bool IsOpen){
-	if (IsOpen==IsDoorOpen){
-		return;
-	}
-	if (InAction){
-		return;
-	}
-	FRotator DoorRotation = CompOwner->GetActorRotation();
-	TargetYaw =  DoorRotation.Yaw + 90.0f* (IsOpen? -1:1);
-	InitialYaw = DoorRotation.Yaw;
-	IsDoorOpen = IsOpen;
-	InAction = true;
-}
-
-void UDoorBehavior::InitializeDoor(){
-	if (IsDoorOpen){
-		FRotator DoorRotation = CompOwner->GetActorRotation();
-		TargetYaw =  DoorRotation.Yaw + 90.0f;
-		InitialYaw = DoorRotation.Yaw;
-		InAction = true;
-	}
-}
-
 
 	
 
