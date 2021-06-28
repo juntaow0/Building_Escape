@@ -23,10 +23,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-
 private:
 	UPROPERTY(EditAnywhere)
-	float GrabDistance = 100.f;
+	float GrabDistance = 200.f;
 	UPhysicsHandleComponent* PhysicsHandle;
+	UInputComponent* InputComponent;
+	void Grab();
+	void Release();
+	FHitResult GetFirstPhysicsBodyInReach() const;
 };
