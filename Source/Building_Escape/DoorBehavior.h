@@ -42,7 +42,7 @@ private:
 	float DoorCloseDelay = 2.0f;
 	UPROPERTY(EditAnywhere)
 	ATriggerBox * PressurePlate;
-	UPROPERTY(EditAnywhere)
+	
 	AActor* User;
 	bool InAction = false;
 	float LerpPercent = 0.0f;
