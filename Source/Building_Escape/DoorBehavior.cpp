@@ -2,9 +2,12 @@
 
 
 #include "DoorBehavior.h"
+#include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
-#include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/World.h"
+
+#define OUT
 
 // Sets default values for this component's properties
 UDoorBehavior::UDoorBehavior()
@@ -19,10 +22,10 @@ UDoorBehavior::UDoorBehavior()
 void UDoorBehavior::BeginPlay()
 {
 	Super::BeginPlay();
-	User = GetWorld()->GetFirstPlayerController()->GetPawn();
 	if (!PressurePlate){
 		UE_LOG(LogTemp, Error, TEXT("%s has DoorBehavior, but no Trigger set"),*CompOwner->GetName());
 	}
+	FindAudioComponent();
 	InitializeDoor();
 	//FScriptDelegate Delegate1;
 	//FScriptDelegate Delegate2;
@@ -36,7 +39,7 @@ void UDoorBehavior::BeginPlay()
 void UDoorBehavior::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	 if (PressurePlate && PressurePlate->IsOverlappingActor(User)){
+	 if (PressurePlate && TotalMassOfActors()>=ActivationMass){
 	 	ToggleDoor(true);
 		DoorLastOpened = GetWorld()->GetTimeSeconds();
 	 }else{
@@ -55,6 +58,7 @@ void UDoorBehavior::ToggleDoor(bool IsOpen){
 	if (InAction){
 		return;
 	}
+	DoorSound->Play();
 	FRotator DoorRotation = CompOwner->GetActorRotation();
 	TargetYaw =  DoorRotation.Yaw + DoorOpenRange* (IsOpen? 1:-1);
 	InitialYaw = DoorRotation.Yaw;
@@ -98,6 +102,24 @@ void UDoorBehavior::DoorActions(float DeltaTime){
 	UE_LOG(LogTemp, Warning, TEXT("Yaw is: %f, Lerp is: %f"),CurrentRotation.Yaw, LerpPercent);
 }
 
-	
+float UDoorBehavior::TotalMassOfActors() const{
+	float TotalMass = 0.f;
+	TArray<AActor*> OverlappingActors;
+	if (!PressurePlate) return TotalMass;
+	PressurePlate->GetOverlappingActors(OUT OverlappingActors);
+	for (auto Actor:OverlappingActors){
+		TotalMass+=Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+	}
+	return TotalMass;
+}
+
+void UDoorBehavior::FindAudioComponent(){
+	DoorSound = CompOwner->FindComponentByClass<UAudioComponent>();
+	if (!DoorSound){
+		UE_LOG(LogTemp, Error, TEXT("No audio component found for %s"),*CompOwner->GetName());
+	}else{
+		DoorSound->bAutoActivate=false;
+	}
+}
 
 

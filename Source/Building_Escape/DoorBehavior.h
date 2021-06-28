@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/AudioComponent.h"
 #include "Engine/TriggerBox.h"
 #include "DoorBehavior.generated.h"
 
@@ -41,15 +42,20 @@ private:
 	UPROPERTY(EditAnywhere)
 	float DoorCloseDelay = 2.0f;
 	UPROPERTY(EditAnywhere)
-	ATriggerBox * PressurePlate;
+	ATriggerBox * PressurePlate = nullptr;
+	UPROPERTY(EditAnywhere)
+	float ActivationMass = 100.0f;
 	
-	AActor* User;
 	bool InAction = false;
 	float LerpPercent = 0.0f;
-	AActor* CompOwner;
+	AActor* CompOwner = nullptr;
 	float InitialYaw;
 	float TargetYaw;
+	float DoorLastOpened = 0.0f;
+	UPROPERTY()
+	UAudioComponent* DoorSound = nullptr;
 	void InitializeDoor();
 	void DoorActions(float DeltaTime);
-	float DoorLastOpened = 0.0f;
+	float TotalMassOfActors() const;
+	void FindAudioComponent();
 };

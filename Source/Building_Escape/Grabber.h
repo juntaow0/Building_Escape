@@ -26,16 +26,20 @@ protected:
 private:
 	UPROPERTY(EditAnywhere)
 	float GrabDistance = 200.f;
-	UPhysicsHandleComponent* PhysicsHandle;
-	UInputComponent* InputComponent;
+	UPROPERTY()
+	UPhysicsHandleComponent* PhysicsHandle=nullptr;
+	UPROPERTY()
+	UInputComponent* InputComponent=nullptr;
 	void Grab();
 	void Release();
 	FHitResult GetFirstPhysicsBodyInReach() const;
 	void SetupInput();
 	FVector GetLineTraceEnd() const;
 	FVector GetPlayerViewPointPos() const;
-	UWorld* CurrentWorld;
-	APlayerController* FirstPlayerController;
+	UPROPERTY()
+	UWorld* CurrentWorld = nullptr;
+	UPROPERTY()
+	APlayerController* FirstPlayerController = nullptr;
 
 	
 };

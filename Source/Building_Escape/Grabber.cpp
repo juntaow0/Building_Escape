@@ -30,16 +30,19 @@ void UGrabber::BeginPlay()
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (PhysicsHandle->GrabbedComponent){
+
+	if (PhysicsHandle && PhysicsHandle->GrabbedComponent){
 		PhysicsHandle->SetTargetLocation(GetLineTraceEnd());
 	}
 }
 
 void UGrabber::Grab(){
 	FHitResult Hit = GetFirstPhysicsBodyInReach();
-	if (Hit.GetActor()){
+	AActor* ActorHit = Hit.GetActor();
+	if (ActorHit){
 		FVector LineTraceEnd = GetLineTraceEnd();
 		UPrimitiveComponent* ComponentToGrab = Hit.GetComponent();
+		if (!PhysicsHandle) return;
 		PhysicsHandle->GrabComponentAtLocation(
 			ComponentToGrab,
 			NAME_None,
@@ -49,6 +52,7 @@ void UGrabber::Grab(){
 }
 
 void UGrabber::Release(){
+	if (!PhysicsHandle) return;
 	PhysicsHandle->ReleaseComponent();
 }
 
