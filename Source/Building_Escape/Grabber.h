@@ -31,4 +31,11 @@ private:
 	void Grab();
 	void Release();
 	FHitResult GetFirstPhysicsBodyInReach() const;
+	void SetupInput();
+	FVector GetLineTraceEnd() const;
+	FVector GetPlayerViewPointPos() const;
+	UWorld* CurrentWorld;
+	APlayerController* FirstPlayerController;
+
+	
 };
